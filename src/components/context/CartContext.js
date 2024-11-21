@@ -8,114 +8,173 @@ export const CartContext = createContext({
     error: "",
     addItemToCart: () => { },
     updateItemQuantity: () => { },
-
+    subItemToCart: () => { }
 });
 
+
 export default function CartContextProvider({ children }) {
+
 
     const [products, setProducts] = useState([]);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
+
     useEffect(() => {
         async function fetchProducts() {
             setLoading(true);
-            const response = await fetch("https://dummyjson.com/products/category/skin-care?limit=12&select=id,thumbnail,title,price,description");
-
+            const response = await fetch("https://dummyjson.com/products/category/laptops?limit=12&select=id,thumbnail,title,price,description");
             if (response.ok) {
                 const result = await response.json();
                 setProducts(result.products);
-
             } else {
                 setError("Fetch FAILED!");
             }
             setLoading(false);
         }
 
+
         fetchProducts();
     }, []);
 
-    // Shopping Cart
+
+    // SHOPPING CART
+
 
     function cartReducer(state, action) {
-        if (action.type === "ADD_ITEM") {
-            const updateItems = [...state.items];
 
-            const existingCartItemIndex = updateItems.findIndex(
+
+        if (action.type === "ADD_ITEM") {
+            const updatedItems = [...state.items];
+
+
+            const existingCartItemIndex = updatedItems.findIndex(
                 (item) => item.id === action.payload.id
             );
 
-            const existingCartItem = updateItems[existingCartItemIndex];
+
+            const existingCartItem = updatedItems[existingCartItemIndex];
+
 
             if (existingCartItem) {
-                const updateItem = {
+                const updatedItem = {
                     ...existingCartItem,
                     quantity: existingCartItem.quantity + 1,
                 }
-                updateItems[existingCartItemIndex] = updateItem;
+                updatedItems[existingCartItemIndex] = updatedItem;
             } else {
                 const product = action.payload.products.find(
                     (product) => product.id === action.payload.id
-
                 );
-                updateItems.push({
+                updatedItems.push({
                     id: action.payload.id,
                     thumbnail: product.thumbnail,
                     title: product.title,
                     price: product.price,
                     quantity: 1,
-
                 });
             }
-            return { items: updateItems };
 
+
+            return { items: updatedItems };
         }
 
-        if (action.type === "UPDATE_ITEM") {
-            const updateItems = [...state.items];
 
-            const updateItemIndex = updateItems.findIndex(
+        if (action.type === "SUB_ITEM") {
+            const updatedItems = [...state.items];
+
+
+            const existingCartItemIndex = updatedItems.findIndex(
                 (item) => item.id === action.payload.id
             );
 
-            const updateItem = { ...updateItems[updateItemIndex] };
 
-            updateItem.quantity += action.payload.amount;
+            const existingCartItem = updatedItems[existingCartItemIndex];
 
-            if (updateItem.quantity < 1) {
-                updateItems.splice(updateItemIndex, 1);
 
+            if (existingCartItem) {
+                const updatedItem = {
+                    ...existingCartItem,
+                    quantity: existingCartItem.quantity - 1,
+                }
+                updatedItems[existingCartItemIndex] = updatedItem;
             } else {
-                updateItems[updateItemIndex] = updateItem;
+                const product = action.payload.products.find(
+                    (product) => product.id === action.payload.id
+                );
+                updatedItems.push({
+                    id: action.payload.id,
+                    thumbnail: product.thumbnail,
+                    title: product.title,
+                    price: product.price,
+                    quantity: 1,
+                });
             }
 
-            return { ...state, items: updateItems };
 
+            return { items: updatedItems };
         }
 
-        return state;
 
+        if (action.type === "UPDATE_ITEM") {
+            const updatedItems = [...state.items];
+
+
+            const updatedItemIndex = updatedItems.findIndex(
+                (item) => item.id === action.payload.id
+            );
+
+
+            const updatedItem = { ...updatedItems[updatedItemIndex] };
+
+
+            updatedItem.quantity += action.payload.amount;
+
+
+            if (updatedItem.quantity < 1) {
+                updatedItems.splice(updatedItemIndex, 1);
+            } else {
+                updatedItems[updatedItemIndex] = updatedItem;
+            }
+
+
+            return { ...state, items: updatedItems };
+        }
+
+
+        return state;
     }
+
+
     const [cartState, cartDispatch] = useReducer(
         cartReducer,
         { items: [] }
     );
+
 
     function handleAddItemToCart(id) {
         cartDispatch({
             type: "ADD_ITEM",
             payload: { id, products }
         });
-
     }
 
-    function handleUpdateCartIemQuantity(id, amount) {
+
+    function handleUpdateCartItemQuantity(id, amount) {
         cartDispatch({
             type: "UPDATE_ITEM",
             payload: { id, amount }
         });
-
     }
+
+
+    function handleSubItemToCart(id) {
+        cartDispatch({
+            type: "SUB_ITEM",
+            payload: { id, products }
+        });
+    }
+
 
     const ctx = {
         items: cartState.items,
@@ -123,8 +182,8 @@ export default function CartContextProvider({ children }) {
         loading: loading,
         error: error,
         addItemToCart: handleAddItemToCart,
-        updateItemQuantity: handleUpdateCartIemQuantity
-
+        updateItemQuantity: handleUpdateCartItemQuantity,
+        subItemToCart: handleSubItemToCart
     };
 
 
@@ -132,8 +191,5 @@ export default function CartContextProvider({ children }) {
         {children}
     </CartContext.Provider>
 
+
 }
-
-
-
-
