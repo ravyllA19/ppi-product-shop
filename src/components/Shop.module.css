@@ -1,0 +1,14 @@
+.search-container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem;
+    margin: 0 auto;
+}
+
+.search-box{
+    display: flex;
+    width: 60vw;
+    margin: 1rem 0;
+
+}
