@@ -1,13 +1,37 @@
-import { useContext } from "react";
+import { useContext, useRef, useState } from "react";
 import Product from "./Product";
 import { CircularProgress } from "@mui/material";
 import { CartContext } from "./context/CartContext";
 import styles from "./Shop.module.css";
+import { useEffect } from "react";
 
 
 export default function Shop() {
 
     const { products, loading, error } = useContext(CartContext);
+
+    const searchInput = useRef("");
+    const [filteredItems, setFilteredItems] = useState([]);
+
+    useEffect(() => {
+        if(products) {
+            setFilteredItems(products);
+        }
+    }, [products]);
+
+    function handleSearch(){
+        const term = searchInput.current.value.toLowerCase();
+        setFilteredItems(
+            products.filter((item) => item.title.toLowerCase().includes(term))
+        );
+
+    }
+
+    function clearSearch(){
+        searchInput.current.value = "";
+
+
+    }
 
     return (
         <section id="shop">
@@ -15,8 +39,14 @@ export default function Shop() {
 
             <div className={styles.search_container}>
                 <div className={styles.search_box}>
-                    <input />
-                    <button>CLEAR</button>
+                    <input 
+                    ref ={searchInput}
+                    className={styles.search_input}
+                    type="text"
+                    placeholder="Type to search..."
+                    onChange={handleSearch}
+                    />
+                    <button className={styles.search_clear} onClick={clearSearch}>CLEAR</button>
                 </div>
             </div>
 
@@ -24,17 +54,22 @@ export default function Shop() {
 
             <ul id="products">
                 {error && <p>{error}</p>}
-                {!loading && products ? (
-                    products.map((product) => (
+                {loading &&
+                 <div id="loading">
+                 <CircularProgress size="10rem" color="inherit" />
+                 <p>Loading products...</p>
+             </div>
+         }
+                {!loading && !error && filteredItems.length > 0 ? (
+                    filteredItems.map((product) => (
                         <li key={product.id}>
                             <Product {...product} />
                         </li>
                     ))
                 ) : (
-                    <div id="loading">
-                        <CircularProgress size="10rem" color="inherit" />
-                        <p>Loading products...</p>
-                    </div>
+
+                    <p>Not Found</p>
+                   
                 )}
             </ul>
 
